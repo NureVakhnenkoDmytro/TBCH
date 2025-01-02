@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Energy Distribution System</title>
+    <style>
+        #graph-container, #graph-container-updated {
+            border: 2px solid black;
+            padding: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Energy Distribution System</h1>
+    <div>
+        <label for="nodes">Number of Nodes:</label>
+        <input type="number" id="nodes" min="2" required>
+        <button onclick="generateGraph()">Generate Graph</button>
+    </div>
+    <div id="graph-container">
+        <img id="graph" src="" alt="Graph will be displayed here">
+    </div>
+    <h2>Distribute Energy</h2>
+    <form id="distributionForm">
+        <label for="start">Start Node:</label>
+        <input type="text" id="start" name="start" required><br><br>
+        <label for="energy">Energy Amount:</label>
+        <input type="number" id="energy" name="energy" required><br><br>
+        <button type="submit">Distribute Energy</button>
+    </form>
+    <div id="result"></div>
+    <div id="graph-container-updated">
+        <img id="graph-updated" src="" alt="Updated Graph will be displayed here">
+    </div>
+    <h2>Send to Blockchain</h2>
+    <button onclick="sendToBlockchain()">Send Data to Blockchain</button>
+    <div id="transactionHash"></div>
+    <script>
+        async function generateGraph() {
+            const nodes = document.getElementById('nodes').value;
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_nodes: parseInt(nodes) })
+            });
+            const result = await response.json();
+            if (result.message) {
+                document.getElementById('graph').src = '/static/graph.png?' + new Date().getTime();
+            }
+        }
+
+        document.getElementById('distributionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const start = document.getElementById('start').value;
+            const energy = document.getElementById('energy').value;
+            const response = await fetch('/distribute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ start, energy })
+            });
+            const result = await response.json();
+            document.getElementById('result').innerText = JSON.stringify(result, null, 2);
+            document.getElementById('graph-updated').src = '/static/graph_updated.png?' + new Date().getTime();
+        });
+
+        async function sendToBlockchain() {
+            const response = await fetch('/send_to_blockchain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ energy_distribution: JSON.parse(document.getElementById('result').innerText) })
+            });
+            const result = await response.json();
+            document.getElementById('transactionHash').innerText = `Transaction Hash: ${result.transaction_hash}`;
+        }
+    </script>
+</body>
+</html>

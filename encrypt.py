@@ -1,0 +1,6 @@
+numbers = [
+    819672131147540992,1475409836065573888,196721311475409856,1508196721311475200
+]
+
+decoded_values = [num / 10**18 for num in numbers]
+print(decoded_values)
